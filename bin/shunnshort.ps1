@@ -11,7 +11,6 @@ function New-TemporaryDirectory {
 
 # Figure out where everything is
 $ShunnShortStoryDir=Join-Path $PSScriptRoot "..\shunn\short"
-Get-ChildItem $ShunnShortStoryDir
 
 # Create a temporary data directory
 # Set it in the environment for lua scripts.
@@ -20,8 +19,8 @@ $env:PANDOC_DATA_DIR=New-TemporaryDirectory
 echo "Directory created: $env:PANDOC_DATA_DIR"
 
 # Copy template and reference directories
-Write-Output "Copying $ShunnShortStoryDir\template to $PANDOC_DATA_DIR\reference."
-Copy-Item -Path $ShunnShortStoryDir\template $PANDOC_DATA_DIR\reference -Recurse
+Write-Output "Copying $ShunnShortStoryDir\template to $env:PANDOC_DATA_DIR\reference."
+Copy-Item -Path $ShunnShortStoryDir\template $env:PANDOC_DATA_DIR\reference -Recurse
 Write-Output "Template copied."
 
 # Run pandoc
@@ -31,5 +30,5 @@ Write-Output "Pandoc completed successfully."
 
 # Clean up the temporary directory
 Write-Output "Removing $env:PANDOC_DATA_DIR"
-Remove-Item $env:PANDOC_DATA_DIR
+Remove-Item $env:PANDOC_DATA_DIR -Recurse
 Write-Output "Done."
