@@ -9,34 +9,20 @@ function New-TemporaryDirectory {
     New-Item -ItemType Directory -Path (Join-Path $parent $name)
 }
 
-# https://stackoverflow.com/questions/27768303/how-to-unzip-a-file-in-powershell
-Add-Type -AssemblyName System.IO.Compression.FileSystem
-function Unzip
-{
-    param([string]$zipfile, [string]$outpath)
-
-    [System.IO.Compression.ZipFile]::ExtractToDirectory($zipfile, $outpath)
-}
-
-# https://stackoverflow.com/questions/1153126/how-to-create-a-zip-archive-with-powershell#13302548
-function ZipFiles( $zipfilename, $sourcedir )
-{
-   $compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
-   [System.IO.Compression.ZipFile]::CreateFromDirectory($sourcedir,
-        $zipfilename, $compressionLevel, $false)
-}
-
 # Figure out where everything is
 $ShunnShortStoryDir=Join-Path $PSScriptRoot "..\shunn\short"
 Get-ChildItem $ShunnShortStoryDir
 
 # Create a temporary data directory
+# Set it in the environment for lua scripts.
+echo "Creating temporary directory."
 $env:PANDOC_DATA_DIR=New-TemporaryDirectory
+echo "Directory created: $env:PANDOC_DATA_DIR"
 
-# Prep the template and reference directories
-Copy-Item -Path $ShunnShortStoryDir\template.docx -Destination $env:PANDOC_DATA_DIR\template.zip
-Expand-Archive -Path $env:PANDOC_DATA_DIR\template.zip -DestinationPath $env:PANDOC_DATA_DIR\template\
-Expand-Archive -Path $env:PANDOC_DATA_DIR\template.zip -DestinationPath $env:PANDOC_DATA_DIR\reference\
+# Copy template and reference directories
+Write-Output "Copying $ShunnShortStoryDir\template to $PANDOC_DATA_DIR\reference."
+Copy-Item -Path $ShunnShortStoryDir\template $PANDOC_DATA_DIR\reference -Recurse
+Write-Output "Template copied."
 
 # Run pandoc
 Write-Output "Running Pandoc."
@@ -44,4 +30,6 @@ pandoc $infile --from markdown --to docx --lua-filter $ShunnShortStoryDir/shunns
 Write-Output "Pandoc completed successfully."
 
 # Clean up the temporary directory
+Write-Output "Removing $env:PANDOC_DATA_DIR"
 Remove-Item $env:PANDOC_DATA_DIR
+Write-Output "Done."

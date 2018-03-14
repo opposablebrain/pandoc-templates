@@ -5,19 +5,18 @@
 # Figure out where everything is
 SCRIPT=$(realpath $0)
 SCRIPT_PATH=$(dirname $SCRIPT)
-PANDOC_TEMPLATES=$(dirname $SCRIPT_PATH)
-SHUNN_SHORT_STORY_DIR="$PANDOC_TEMPLATES/shunn/short"
+PANDOC_TEMPLATES_HOME=$(dirname $SCRIPT_PATH)
+SHUNN_SHORT_STORY_DIR="$PANDOC_TEMPLATES_HOME/shunn/short"
 
 # Create a temporary data directory
 echo "Creating temporary directory."
 export PANDOC_DATA_DIR=$(mktemp -d)
 echo "Directory created: $PANDOC_DATA_DIR"
 
-# Prep the template and reference directories
-echo "Extracting $SHUNN_SHORT_STORY_DIR/template.docx to temporary directory."
-unzip -ao $SHUNN_SHORT_STORY_DIR/template.docx -d $PANDOC_DATA_DIR/template > /dev/null
-unzip -ao $SHUNN_SHORT_STORY_DIR/template.docx -d $PANDOC_DATA_DIR/reference > /dev/null
-echo "Files extracted."
+# Copy template and reference directories
+echo "Copying $SHUNN_SHORT_STORY_DIR/template/ to $PANDOC_DATA_DIR/reference/."
+cp --recursive $SHUNN_SHORT_STORY_DIR/template -d $PANDOC_DATA_DIR/reference
+echo "Template copied."
 
 # Run pandoc
 echo "Running Pandoc."
