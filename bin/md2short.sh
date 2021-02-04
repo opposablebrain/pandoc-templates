@@ -12,61 +12,17 @@ LUA_PATH="$FILTERS_PATH/?.lua;;"
 PANDOC_TEMPLATES="$(dirname "$SCRIPT_PATH")"
 SHUNN_SHORT_STORY_DIR="$PANDOC_TEMPLATES/shunn/short"
 
-# https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash/
-FILES=()
-while [[ $# -gt 0 ]]
-do
-  key="$1"
-
-  case $key in
-    -h|--help)
-    echo "
-md2short.sh --output DOCX [--overwrite] FILES
-
-  -o DOCX               --output=DOCX
-    Write the output to DOCX. Passed straight to pandoc as-is.
-  -x                    --overwrite
-    If output FILE exists, overwrite without prompting.
-  FILES
-    One (1) or more Markdown file(s) to be converted to DOCX.
-    Passed straight to pandoc as-is.
-
-"
-    exit 0
-    ;;
-    -x|--overwrite)
-    OVERWRITE="1"
-    shift
-    ;;
-    -o|--output)
-    OUTFILE="$2"
-    shift # past argument
-    shift # past value
-    ;;
-    *)    # unknown option
-    FILES+=("$1") # save it in an array for later
-    shift # past argument
-    ;;
-  esac
-done
-
-if [[ -z $OUTFILE ]]; then
-  echo "No --output argument given."
-  exit 1
+if (( $# > 0 )); then
+  if [ -f "$1" ];then
+      MDFILE="$1"
+      OUTFILE=$(basename "${MDFILE%.*}.docx")
+  else
+      echo "$1 not found"
+      exit 10
+  fi
 else
-  OUTFILE="$(realpath "$OUTFILE")"
-fi
-
-# Prompt for confirmation if ${OUTFILE} exists.
-if [[ -f "$OUTFILE" && -z "$OVERWRITE" ]]; then
-  echo "$OUTFILE exists."
-  echo "Do you want to overwrite it?"
-  select yn in "Yes" "No"; do
-      case $yn in
-          Yes ) echo "Overwriting."; break;;
-          No ) echo "Cancelling."; exit;;
-      esac
-  done
+  echo "Usage:" $(basename "$0") "filename.md"
+  exit 1
 fi
 
 # Create a temporary data directory
@@ -90,7 +46,7 @@ if pandoc \
   --data-dir="$PANDOC_DATA_DIR" \
   --output="$OUTFILE" \
   --metadata-file="$SHUNN_META" \
-  "${FILES[@]:0}"; then
+  "$MDFILE"; then
   echo "Pandoc completed successfully."
   ECODE=0
 else
