@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 # Convert a Markdown file to .docx
 # Rule 1: Use Pandoc only where necessary
@@ -83,16 +83,21 @@ echo "Files extracted."
 
 # Run pandoc
 echo "Running Pandoc."
-pandoc \
+if pandoc \
   --from=markdown \
   --to=docx \
   --lua-filter="$SHUNN_LONG_STORY_DIR/shunnlong.lua" \
   --data-dir="$PANDOC_DATA_DIR" \
   --output="$OUTFILE" \
-  "${FILES[@]:0}"
-echo "Pandoc completed successfully."
+  --metadata-file="$SHUNN_META" \
+  "${FILES[@]:0}"; then
+  echo "Pandoc completed successfully."
+  ECODE=0
+else
+  echo "Pandoc FAILED."
+  ECODE=10
+fi
 
 # Clean up the temporary directory
-echo "Removing $PANDOC_DATA_DIR"
 rm -rf "$PANDOC_DATA_DIR"
-echo "Done."
+exit $ECODE
